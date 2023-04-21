@@ -21,8 +21,8 @@ function saveDB() {
 
 const bot = new Telegraf(process.env.BOT_TOKEN ?? '');
 
-bot.start((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere le province selezionate.\nUsa /cancella per cancellare le province selezionate'));
-bot.help((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere le province selezionate.\nUsa /cancella per cancellare le province selezionate'));
+bot.start((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere la provincia selezionate.\nUsa /cancella per cancellare la provincia selezionate'));
+bot.help((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere la provincia selezionate.\nUsa /cancella per cancellare la provincia selezionate'));
 bot.command('dump', (ctx) => {
   if (ctx.chat.id.toString() == process.env.MY_ID)
     ctx.reply(JSON.stringify(DB, null, 2))
