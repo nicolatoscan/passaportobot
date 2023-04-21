@@ -39,7 +39,6 @@ bot.command('resettone', (ctx) => {
   }
 });
 bot.command('ping', (ctx) => ctx.reply('pong'));
-bot.command('ping', (ctx) => ctx.reply('pong'));
 
 bot.command('stato', async (ctx) => {
   const provs = DB[ctx.chat.id.toString()] ?? [];
