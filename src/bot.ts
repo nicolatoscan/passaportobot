@@ -7,28 +7,41 @@ import { parse } from 'node-html-parser';
 import fs from 'fs';
 dotenv.config();
 
-const DB_FILE = 'db.json';
 const DB: { [chatId: string]: string[] } = getDB();
 function getDB() {
-  if (fs.existsSync(DB_FILE)) {
-    const file = fs.readFileSync(DB_FILE);
+  if (fs.existsSync('db.json')) {
+    const file = fs.readFileSync('db.json');
     return JSON.parse(file.toString());
   }
   return {};
 }
 function saveDB() {
-  fs.writeFileSync(DB_FILE, JSON.stringify(DB));
+  fs.writeFileSync('db.json', JSON.stringify(DB));
 }
 
 const bot = new Telegraf(process.env.BOT_TOKEN ?? '');
 
-bot.start((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare'));
-bot.help((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare'));
+bot.start((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere le province selezionate.\nUsa /cancella per cancellare le province selezionate'));
+bot.help((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere le province selezionate.\nUsa /cancella per cancellare le province selezionate'));
 bot.command('dump', (ctx) => {
   if (ctx.chat.id.toString() == process.env.MY_ID)
     ctx.reply(JSON.stringify(DB, null, 2))
 });
 bot.command('ping', (ctx) => ctx.reply('pong'));
+
+bot.command('stato', async (ctx) => {
+  const provs = DB[ctx.chat.id.toString()] ?? [];
+  if (provs.length === 0) {
+    ctx.reply('Nessuna provincia selezionata');
+  } else {
+    ctx.reply(`Al momento stai controllando la provincia di: ${DB[ctx.chat.id.toString()]?.join(', ')}`);
+  }
+});
+bot.command('cancella', async (ctx) => {
+  delete DB[ctx.chat.id.toString()];
+  ctx.reply('Non controlleró piú nessuna provincia');
+  saveDB();
+});
 
 bot.on(message('text'), async (ctx) => {
   const prov = ctx.message.text
@@ -38,10 +51,13 @@ bot.on(message('text'), async (ctx) => {
     .filter((w) => province.includes(w)) ?? [];
   
   const chatId = ctx.chat.id.toString();
-  DB[chatId] = prov;
+  if (prov.length === 0)
+    delete DB[chatId]
+  else
+    DB[chatId] = prov;
   saveDB();
   try {
-    await ctx.reply(prov.length > 0 ? `Hai selezionato le province: ${prov.join(', ')}` : 'Nessuna provincia selezionata');
+    await ctx.reply(prov.length > 0 ? `Hai selezionato la provincia: ${prov.join(', ')}` : 'Nessuna provincia selezionata');
   } catch (e) {}
   const sent = await sendTo(chatId, prov);
   if (!sent) {
