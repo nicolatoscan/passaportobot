@@ -19,14 +19,26 @@ function saveDB() {
   fs.writeFileSync('db.json', JSON.stringify(DB));
 }
 
+function checkItsMe(chatId: number) {
+  return chatId.toString() == process.env.MY_ID;
+}
+
 const bot = new Telegraf(process.env.BOT_TOKEN ?? '');
 
 bot.start((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere la provincia selezionate.\nUsa /cancella per cancellare la provincia selezionate'));
 bot.help((ctx) => ctx.reply('Benvenuto! Inviami le sigla della provincia da controllare.\nUsa /stato per vedere la provincia selezionate.\nUsa /cancella per cancellare la provincia selezionate'));
 bot.command('dump', (ctx) => {
-  if (ctx.chat.id.toString() == process.env.MY_ID)
+  if (checkItsMe(ctx.chat.id))
     ctx.reply(JSON.stringify(DB, null, 2))
 });
+bot.command('resettone', (ctx) => {
+  if (checkItsMe(ctx.chat.id)) {
+    for (const chatId in DB) delete DB[chatId];
+    saveDB();
+    ctx.reply('DB resettato');
+  }
+});
+bot.command('ping', (ctx) => ctx.reply('pong'));
 bot.command('ping', (ctx) => ctx.reply('pong'));
 
 bot.command('stato', async (ctx) => {
